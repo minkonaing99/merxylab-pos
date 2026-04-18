@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POS Design System & Layouts</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; background: #f1f5f9; color: #0f172a; }
+
+  /* ---- Page chrome ---- */
+  .page { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .lead { color: #64748b; font-size: 14px; margin-bottom: 32px; }
+  h2 { font-size: 15px; font-weight: 700; margin-bottom: 16px; letter-spacing: -.01em; }
+  .section { margin-bottom: 40px; }
+
+  /* ---- Design tokens ---- */
+  .tokens { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+  .token-swatch { border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  .token-color { width: 72px; height: 48px; }
+  .token-label { background: #fff; padding: 4px 8px; font-size: 11px; font-weight: 600; color: #374151; }
+  .token-hex { font-size: 10px; color: #94a3b8; font-family: monospace; }
+
+  /* ---- Tabs ---- */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 0; }
+  .tab { padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 6px 6px 0 0; color: #64748b; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .15s; }
+  .tab.active { color: #16a34a; border-bottom-color: #16a34a; background: #f0fdf4; }
+  .tab:hover:not(.active) { color: #374151; background: #f8fafc; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ---- Shared sidebar shell ---- */
+  .shell { display: flex; height: 540px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,.1); border: 1px solid #e2e8f0; background: #fff; }
+  .sidebar { width: 220px; background: #111827; display: flex; flex-direction: column; padding: 0; flex-shrink: 0; }
+  .sidebar-logo { padding: 20px 16px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #1f2937; }
+  .logo-mark { width: 30px; height: 30px; background: linear-gradient(135deg, #16a34a, #22c55e); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #fff; }
+  .logo-text { font-size: 14px; font-weight: 700; color: #f9fafb; }
+  .logo-sub { font-size: 10px; color: #6b7280; }
+  .sidebar-nav { flex: 1; padding: 12px 8px; overflow: hidden; }
+  .nav-label { font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: #4b5563; padding: 8px 8px 4px; font-weight: 700; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 7px; color: #9ca3af; font-size: 13px; margin-bottom: 2px; cursor: pointer; transition: all .15s; }
+  .nav-item.active { background: #16a34a; color: #fff; }
+  .nav-item:hover:not(.active) { background: #1f2937; color: #f3f4f6; }
+  .nav-icon { width: 16px; height: 16px; background: currentColor; border-radius: 3px; opacity: .7; flex-shrink: 0; }
+  .nav-item.active .nav-icon { opacity: 1; }
+  .sidebar-footer { padding: 12px 8px; border-top: 1px solid #1f2937; }
+  .user-pill { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 7px; }
+  .avatar { width: 28px; height: 28px; background: #374151; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #9ca3af; }
+  .user-info { font-size: 11px; color: #9ca3af; }
+  .user-name { color: #f3f4f6; font-weight: 600; font-size: 12px; }
+  .store-badge { font-size: 9px; background: #1f2937; color: #6b7280; padding: 1px 6px; border-radius: 99px; display: inline-block; margin-top: 2px; }
+  .main { flex: 1; overflow: hidden; display: flex; flex-direction: column; background: #f9fafb; }
+  .topbar { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 0 20px; height: 52px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .topbar-title { font-size: 16px; font-weight: 700; color: #111827; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+  .btn { padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; }
+  .btn-primary { background: #16a34a; color: #fff; }
+  .btn-ghost { background: #f3f4f6; color: #374151; }
+  .content { flex: 1; padding: 20px; overflow: hidden; }
+
+  /* ---- KPI Cards ---- */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid #e5e7eb; }
+  .kpi-label { font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .kpi-value { font-size: 22px; font-weight: 800; color: #111827; line-height: 1; }
+  .kpi-delta { font-size: 11px; color: #16a34a; margin-top: 3px; font-weight: 600; }
+  .kpi-delta.down { color: #ef4444; }
+
+  /* ---- Chart placeholder ---- */
+  .chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+  .chart-box { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb; padding: 14px; }
+  .chart-title { font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 10px; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+  .bar { flex: 1; background: #dcfce7; border-radius: 4px 4px 0 0; position: relative; }
+  .bar.highlight { background: #16a34a; }
+  .donut { width: 80px; height: 80px; border-radius: 50%; background: conic-gradient(#16a34a 0deg 200deg, #22c55e 200deg 280deg, #86efac 280deg 340deg, #e5e7eb 340deg 360deg); margin: 0 auto; }
+
+  /* ---- POS Layout ---- */
+  .pos-shell { display: flex; height: 540px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,.1); border: 1px solid #e2e8f0; }
+  .pos-left { flex: 1; background: #f9fafb; display: flex; flex-direction: column; }
+  .pos-topbar { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+  .pos-logo { width: 26px; height: 26px; background: linear-gradient(135deg,#16a34a,#22c55e); border-radius: 6px; display: flex; align-items: center; justify-content: center; color:#fff; font-weight:800; font-size:12px; }
+  .search-bar { flex: 1; background: #f3f4f6; border-radius: 7px; padding: 7px 12px; font-size: 13px; color: #9ca3af; display: flex; align-items: center; gap: 6px; }
+  .search-icon { width: 14px; height: 14px; background: #9ca3af; border-radius: 50%; flex-shrink: 0; }
+  .pos-toolbar { display: flex; gap: 6px; }
+  .icon-btn { width: 32px; height: 32px; background: #f3f4f6; border-radius: 7px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .icon-dot { width: 10px; height: 10px; background: #374151; border-radius: 2px; }
+
+  .pos-cats { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 8px 14px; display: flex; gap: 6px; overflow: hidden; }
+  .cat-chip { padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 600; background: #f3f4f6; color: #6b7280; cursor: pointer; white-space: nowrap; }
+  .cat-chip.active { background: #16a34a; color: #fff; }
+
+  .product-grid { flex: 1; padding: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-content: start; overflow: hidden; }
+  .product-card { background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; padding: 10px 8px; cursor: pointer; text-align: center; transition: all .15s; }
+  .product-card:hover { border-color: #16a34a; box-shadow: 0 0 0 2px #dcfce7; }
+  .product-img { width: 44px; height: 44px; background: #f3f4f6; border-radius: 6px; margin: 0 auto 6px; }
+  .product-name { font-size: 11px; font-weight: 600; color: #374151; line-height: 1.3; margin-bottom: 3px; }
+  .product-price { font-size: 13px; font-weight: 800; color: #16a34a; }
+  .product-stock { font-size: 9px; color: #9ca3af; margin-top: 1px; }
+
+  .pos-right { width: 280px; background: #fff; border-left: 1px solid #e5e7eb; display: flex; flex-direction: column; }
+  .cart-header { padding: 12px 14px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between; }
+  .cart-title { font-size: 14px; font-weight: 700; color: #111827; }
+  .cart-badge { background: #16a34a; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 99px; }
+  .cart-items { flex: 1; padding: 10px; overflow: hidden; display: flex; flex-direction: column; gap: 6px; }
+  .cart-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: #f9fafb; border-radius: 7px; }
+  .cart-item-info { flex: 1; }
+  .cart-item-name { font-size: 11px; font-weight: 600; color: #374151; }
+  .cart-item-price { font-size: 10px; color: #6b7280; }
+  .cart-qty { display: flex; align-items: center; gap: 4px; }
+  .qty-btn { width: 20px; height: 20px; background: #f3f4f6; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #374151; cursor: pointer; }
+  .qty-val { font-size: 12px; font-weight: 700; color: #111827; min-width: 16px; text-align: center; }
+  .cart-footer { padding: 12px 14px; border-top: 1px solid #f3f4f6; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 12px; color: #6b7280; margin-bottom: 5px; }
+  .summary-row.total { font-size: 16px; font-weight: 800; color: #111827; border-top: 1px solid #e5e7eb; padding-top: 8px; margin-top: 5px; }
+  .pay-btn { width: 100%; padding: 12px; background: #16a34a; color: #fff; font-size: 14px; font-weight: 700; border-radius: 9px; border: none; cursor: pointer; margin-top: 10px; letter-spacing: .01em; }
+  .hold-btn { width: 100%; padding: 8px; background: #f3f4f6; color: #374151; font-size: 12px; font-weight: 600; border-radius: 7px; border: none; cursor: pointer; margin-top: 6px; }
+
+  /* ---- Table ---- */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .data-table th { text-align: left; padding: 8px 12px; color: #6b7280; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
+  .data-table td { padding: 9px 12px; border-bottom: 1px solid #f3f4f6; color: #374151; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700; }
+  .badge-green { background: #dcfce7; color: #16a34a; }
+  .badge-yellow { background: #fef9c3; color: #ca8a04; }
+  .badge-red { background: #fee2e2; color: #dc2626; }
+  .badge-blue { background: #dbeafe; color: #2563eb; }
+  .badge-gray { background: #f3f4f6; color: #6b7280; }
+  .table-toolbar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+  .filter-input { flex: 1; padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 7px; font-size: 12px; color: #374151; background: #fff; }
+  .filter-select { padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 7px; font-size: 12px; color: #374151; background: #fff; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>MerxyLab POS — UI Design</h1>
+  <p class="lead">Clean light · Green accent · Shared sidebar shell · Four panel layouts</p>
+
+  <!-- Design Tokens -->
+  <div class="section">
+    <h2>Design Tokens</h2>
+    <div class="tokens">
+      <div class="token-swatch">
+        <div class="token-color" style="background:#16a34a"></div>
+        <div class="token-label">Primary<br><span class="token-hex">#16a34a</span></div>
+      </div>
+      <div class="token-swatch">
+        <div class="token-color" style="background:#22c55e"></div>
+        <div class="token-label">Primary Light<br><span class="token-hex">#22c55e</span></div>
+      </div>
+      <div class="token-swatch">
+        <div class="token-color" style="background:#dcfce7"></div>
+        <div class="token-label">Primary Tint<br><span class="token-hex">#dcfce7</span></div>
+      </div>
+      <div class="token-swatch">
+        <div class="token-color" style="background:#111827"></div>
+        <div class="token-label">Sidebar BG<br><span class="token-hex">#111827</span></div>
+      </div>
+      <div class="token-swatch">
+        <div class="token-color" style="background:#f9fafb"></div>
+        <div class="token-label">Canvas<br><span class="token-hex">#f9fafb</span></div>
+      </div>
+      <div class="token-swatch">
+        <div class="token-color" style="background:#ffffff;border:1px solid #e5e7eb;"></div>
+        <div class="token-label">Surface<br><span class="token-hex">#ffffff</span></div>
+      </div>
+      <div class="token-swatch">
+        <div class="token-color" style="background:#0f172a"></div>
+        <div class="token-label">Text Dark<br><span class="token-hex">#0f172a</span></div>
+      </div>
+      <div class="token-swatch">
+        <div class="token-color" style="background:#64748b"></div>
+        <div class="token-label">Text Muted<br><span class="token-hex">#64748b</span></div>
+      </div>
+      <div class="token-swatch">
+        <div class="token-color" style="background:#ef4444"></div>
+        <div class="token-label">Danger<br><span class="token-hex">#ef4444</span></div>
+      </div>
+      <div class="token-swatch">
+        <div class="token-color" style="background:#f59e0b"></div>
+        <div class="token-label">Warning<br><span class="token-hex">#f59e0b</span></div>
+      </div>
+      <div class="token-swatch">
+        <div class="token-color" style="background:#3b82f6"></div>
+        <div class="token-label">Info<br><span class="token-hex">#3b82f6</span></div>
+      </div>
+      <div class="token-swatch">
+        <div class="token-color" style="background:#e5e7eb"></div>
+        <div class="token-label">Border<br><span class="token-hex">#e5e7eb</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="showPanel('pos')">Cashier POS</button>
+    <button class="tab" onclick="showPanel('dashboard')">Dashboard</button>
+    <button class="tab" onclick="showPanel('stock')">Stock Panel</button>
+    <button class="tab" onclick="showPanel('admin')">Admin Panel</button>
+  </div>
+
+  <!-- POS Panel -->
+  <div class="panel active" id="panel-pos">
+    <div style="margin-bottom:8px;font-size:12px;color:#6b7280;">Full-screen layout — no sidebar. Optimised for speed. Keyboard shortcuts: <strong>F2</strong> search · <strong>F4</strong> hold · <strong>F5</strong> payment · <strong>Esc</strong> clear cart</div>
+    <div class="pos-shell">
+      <!-- Left: Product area -->
+      <div class="pos-left">
+        <div class="pos-topbar">
+          <div class="pos-logo">M</div>
+          <div class="search-bar">
+            <div class="search-icon"></div>
+            Search products or scan barcode... (F2)
+          </div>
+          <div class="pos-toolbar">
+            <div class="icon-btn" title="Hold orders"><div class="icon-dot"></div></div>
+            <div class="icon-btn" title="Order history"><div class="icon-dot"></div></div>
+            <div style="width:32px;height:32px;background:#dcfce7;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+              <div style="width:10px;height:10px;background:#16a34a;border-radius:2px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="pos-cats">
+          <div class="cat-chip active">All</div>
+          <div class="cat-chip">Beverages</div>
+          <div class="cat-chip">Snacks</div>
+          <div class="cat-chip">Electronics</div>
+          <div class="cat-chip">Clothing</div>
+          <div class="cat-chip">Health</div>
+        </div>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-img"></div>
+            <div class="product-name">Green Tea 500ml</div>
+            <div class="product-price">$1.50</div>
+            <div class="product-stock">In stock: 48</div>
+          </div>
+          <div class="product-card" style="border-color:#16a34a;box-shadow:0 0 0 2px #dcfce7;">
+            <div class="product-img" style="background:#dcfce7;"></div>
+            <div class="product-name">Mineral Water 1L</div>
+            <div class="product-price">$0.80</div>
+            <div class="product-stock">In stock: 120</div>
+          </div>
+          <div class="product-card">
+            <div class="product-img"></div>
+            <div class="product-name">Protein Bar</div>
+            <div class="product-price">$3.20</div>
+            <div class="product-stock">In stock: 24</div>
+          </div>
+          <div class="product-card">
+            <div class="product-img"></div>
+            <div class="product-name">USB-C Cable</div>
+            <div class="product-price">$12.00</div>
+            <div class="product-stock">In stock: 8</div>
+          </div>
+          <div class="product-card">
+            <div class="product-img"></div>
+            <div class="product-name">Notebook A5</div>
+            <div class="product-price">$4.50</div>
+            <div class="product-stock">In stock: 33</div>
+          </div>
+          <div class="product-card">
+            <div class="product-img"></div>
+            <div class="product-name">Hand Cream</div>
+            <div class="product-price">$6.90</div>
+            <div class="product-stock">Low: 3</div>
+          </div>
+          <div class="product-card">
+            <div class="product-img"></div>
+            <div class="product-name">Coffee Sachet</div>
+            <div class="product-price">$2.20</div>
+            <div class="product-stock">In stock: 60</div>
+          </div>
+          <div class="product-card">
+            <div class="product-img"></div>
+            <div class="product-name">Rice Crackers</div>
+            <div class="product-price">$1.90</div>
+            <div class="product-stock">In stock: 45</div>
+          </div>
+        </div>
+      </div>
+      <!-- Right: Cart -->
+      <div class="pos-right">
+        <div class="cart-header">
+          <div class="cart-title">Cart</div>
+          <div class="cart-badge">3 items</div>
+        </div>
+        <div class="cart-items">
+          <div class="cart-item">
+            <div class="cart-item-info">
+              <div class="cart-item-name">Mineral Water 1L</div>
+              <div class="cart-item-price">$0.80 each</div>
+            </div>
+            <div class="cart-qty">
+              <div class="qty-btn">−</div>
+              <div class="qty-val">2</div>
+              <div class="qty-btn">+</div>
+            </div>
+          </div>
+          <div class="cart-item">
+            <div class="cart-item-info">
+              <div class="cart-item-name">Green Tea 500ml</div>
+              <div class="cart-item-price">$1.50 each</div>
+            </div>
+            <div class="cart-qty">
+              <div class="qty-btn">−</div>
+              <div class="qty-val">1</div>
+              <div class="qty-btn">+</div>
+            </div>
+          </div>
+          <div class="cart-item">
+            <div class="cart-item-info">
+              <div class="cart-item-name">Protein Bar</div>
+              <div class="cart-item-price">$3.20 each</div>
+            </div>
+            <div class="cart-qty">
+              <div class="qty-btn">−</div>
+              <div class="qty-val">1</div>
+              <div class="qty-btn">+</div>
+            </div>
+          </div>
+        </div>
+        <div class="cart-footer">
+          <div class="summary-row"><span>Subtotal</span><span>$6.30</span></div>
+          <div class="summary-row"><span>Discount</span><span style="color:#16a34a;">−$0.00</span></div>
+          <div class="summary-row"><span>Tax (7%)</span><span>$0.44</span></div>
+          <div class="summary-row total"><span>Total</span><span>$6.74</span></div>
+          <button class="pay-btn">Pay $6.74 (F5)</button>
+          <button class="hold-btn">Hold Order (F4)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Panel -->
+  <div class="panel" id="panel-dashboard">
+    <div class="shell">
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-mark">M</div>
+          <div><div class="logo-text">MerxyLab</div><div class="logo-sub">Dashboard</div></div>
+        </div>
+        <div class="sidebar-nav">
+          <div class="nav-label">Overview</div>
+          <div class="nav-item active"><div class="nav-icon"></div> Overview</div>
+          <div class="nav-item"><div class="nav-icon"></div> Sales Analytics</div>
+          <div class="nav-item"><div class="nav-icon"></div> Profit Report</div>
+          <div class="nav-label">Insights</div>
+          <div class="nav-item"><div class="nav-icon"></div> Product Performance</div>
+          <div class="nav-item"><div class="nav-icon"></div> Staff Activity</div>
+          <div class="nav-item"><div class="nav-icon"></div> Refund Report</div>
+          <div class="nav-label">Export</div>
+          <div class="nav-item"><div class="nav-icon"></div> Export Reports</div>
+        </div>
+        <div class="sidebar-footer">
+          <div class="user-pill">
+            <div class="avatar">JD</div>
+            <div class="user-info"><div class="user-name">Jane Doe</div><div class="store-badge">Manager · Store A</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="main">
+        <div class="topbar">
+          <div class="topbar-title">Overview</div>
+          <div class="topbar-actions">
+            <select style="padding:5px 10px;border:1px solid #e5e7eb;border-radius:7px;font-size:12px;color:#374151;">
+              <option>Today</option><option>This Week</option><option>This Month</option>
+            </select>
+            <button class="btn btn-ghost">Export</button>
+            <button class="btn btn-primary">+ New</button>
+          </div>
+        </div>
+        <div class="content">
+          <div class="kpi-grid">
+            <div class="kpi">
+              <div class="kpi-label">Today's Revenue</div>
+              <div class="kpi-value">$4,821</div>
+              <div class="kpi-delta">↑ 12% vs yesterday</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Orders</div>
+              <div class="kpi-value">148</div>
+              <div class="kpi-delta">↑ 8% vs yesterday</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Avg. Order</div>
+              <div class="kpi-value">$32.57</div>
+              <div class="kpi-delta down">↓ 3% vs yesterday</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Refunds</div>
+              <div class="kpi-value">$142</div>
+              <div class="kpi-delta down">↑ 2 refunds</div>
+            </div>
+          </div>
+          <div class="chart-row">
+            <div class="chart-box">
+              <div class="chart-title">Revenue — Last 7 Days</div>
+              <div class="chart-bars">
+                <div class="bar" style="height:45%"></div>
+                <div class="bar" style="height:60%"></div>
+                <div class="bar" style="height:38%"></div>
+                <div class="bar" style="height:72%"></div>
+                <div class="bar" style="height:55%"></div>
+                <div class="bar" style="height:80%"></div>
+                <div class="bar highlight" style="height:90%"></div>
+              </div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">Sales by Category</div>
+              <div class="donut" style="margin-top:4px;"></div>
+              <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
+                <div style="font-size:10px;color:#374151;display:flex;align-items:center;gap:3px;"><div style="width:8px;height:8px;background:#16a34a;border-radius:2px;"></div>Beverages</div>
+                <div style="font-size:10px;color:#374151;display:flex;align-items:center;gap:3px;"><div style="width:8px;height:8px;background:#22c55e;border-radius:2px;"></div>Snacks</div>
+                <div style="font-size:10px;color:#374151;display:flex;align-items:center;gap:3px;"><div style="width:8px;height:8px;background:#86efac;border-radius:2px;"></div>Other</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock Panel -->
+  <div class="panel" id="panel-stock">
+    <div class="shell">
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-mark">M</div>
+          <div><div class="logo-text">MerxyLab</div><div class="logo-sub">Stock</div></div>
+        </div>
+        <div class="sidebar-nav">
+          <div class="nav-label">Inventory</div>
+          <div class="nav-item active"><div class="nav-icon"></div> Products</div>
+          <div class="nav-item"><div class="nav-icon"></div> Categories</div>
+          <div class="nav-item"><div class="nav-icon"></div> Stock Overview</div>
+          <div class="nav-label">Movements</div>
+          <div class="nav-item"><div class="nav-icon"></div> Stock Adjustment</div>
+          <div class="nav-item"><div class="nav-icon"></div> Stock Transfer</div>
+          <div class="nav-item"><div class="nav-icon"></div> Stock Count</div>
+          <div class="nav-label">Purchasing</div>
+          <div class="nav-item"><div class="nav-icon"></div> Purchase Orders</div>
+          <div class="nav-item"><div class="nav-icon"></div> Suppliers</div>
+          <div class="nav-item"><div class="nav-icon"></div> Low Stock Alerts</div>
+        </div>
+        <div class="sidebar-footer">
+          <div class="user-pill">
+            <div class="avatar">TK</div>
+            <div class="user-info"><div class="user-name">Tom K.</div><div class="store-badge">Inventory · Store B</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="main">
+        <div class="topbar">
+          <div class="topbar-title">Products</div>
+          <div class="topbar-actions">
+            <button class="btn btn-ghost">Import CSV</button>
+            <button class="btn btn-primary">+ Add Product</button>
+          </div>
+        </div>
+        <div class="content">
+          <div class="table-toolbar">
+            <input class="filter-input" placeholder="Search products…" style="max-width:220px;">
+            <select class="filter-select"><option>All Categories</option><option>Beverages</option><option>Snacks</option></select>
+            <select class="filter-select"><option>All Status</option><option>Active</option><option>Inactive</option></select>
+            <select class="filter-select"><option>All Stock</option><option>Low Stock</option><option>Out of Stock</option></select>
+          </div>
+          <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;overflow:hidden;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Product</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Green Tea 500ml</strong></td>
+                  <td style="font-family:monospace;color:#6b7280;">GT-500</td>
+                  <td>Beverages</td>
+                  <td><strong>$1.50</strong></td>
+                  <td>48 units</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><button class="btn btn-ghost" style="padding:3px 10px;font-size:11px;">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Protein Bar</strong></td>
+                  <td style="font-family:monospace;color:#6b7280;">PB-001</td>
+                  <td>Snacks</td>
+                  <td><strong>$3.20</strong></td>
+                  <td style="color:#f59e0b;font-weight:700;">3 units ⚠</td>
+                  <td><span class="badge badge-yellow">Low Stock</span></td>
+                  <td><button class="btn btn-ghost" style="padding:3px 10px;font-size:11px;">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><strong>USB-C Cable</strong></td>
+                  <td style="font-family:monospace;color:#6b7280;">USB-C1</td>
+                  <td>Electronics</td>
+                  <td><strong>$12.00</strong></td>
+                  <td>8 units</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><button class="btn btn-ghost" style="padding:3px 10px;font-size:11px;">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Hand Cream 50g</strong></td>
+                  <td style="font-family:monospace;color:#6b7280;">HC-050</td>
+                  <td>Health</td>
+                  <td><strong>$6.90</strong></td>
+                  <td style="color:#ef4444;font-weight:700;">0 units</td>
+                  <td><span class="badge badge-red">Out of Stock</span></td>
+                  <td><button class="btn btn-ghost" style="padding:3px 10px;font-size:11px;">Edit</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Panel -->
+  <div class="panel" id="panel-admin">
+    <div class="shell">
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-mark">M</div>
+          <div><div class="logo-text">MerxyLab</div><div class="logo-sub">Admin</div></div>
+        </div>
+        <div class="sidebar-nav">
+          <div class="nav-label">Users & Access</div>
+          <div class="nav-item active"><div class="nav-icon"></div> User Management</div>
+          <div class="nav-item"><div class="nav-icon"></div> Roles & Permissions</div>
+          <div class="nav-label">Store Config</div>
+          <div class="nav-item"><div class="nav-icon"></div> Store Settings</div>
+          <div class="nav-item"><div class="nav-icon"></div> Tax Settings</div>
+          <div class="nav-item"><div class="nav-icon"></div> Receipt Settings</div>
+          <div class="nav-item"><div class="nav-icon"></div> Payment Settings</div>
+          <div class="nav-label">System</div>
+          <div class="nav-item"><div class="nav-icon"></div> Devices / Sessions</div>
+          <div class="nav-item"><div class="nav-icon"></div> Audit Logs</div>
+          <div class="nav-item"><div class="nav-icon"></div> System Logs</div>
+        </div>
+        <div class="sidebar-footer">
+          <div class="user-pill">
+            <div class="avatar">SA</div>
+            <div class="user-info"><div class="user-name">Super Admin</div><div class="store-badge">superadmin · All Stores</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="main">
+        <div class="topbar">
+          <div class="topbar-title">User Management</div>
+          <div class="topbar-actions">
+            <button class="btn btn-ghost">Export</button>
+            <button class="btn btn-primary">+ Add User</button>
+          </div>
+        </div>
+        <div class="content">
+          <div class="table-toolbar">
+            <input class="filter-input" placeholder="Search users…" style="max-width:220px;">
+            <select class="filter-select"><option>All Roles</option><option>Admin</option><option>Manager</option><option>Cashier</option><option>Inventory</option></select>
+            <select class="filter-select"><option>All Stores</option><option>Store A</option><option>Store B</option></select>
+          </div>
+          <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;overflow:hidden;">
+            <table class="data-table">
+              <thead>
+                <tr><th>User</th><th>Email</th><th>Role</th><th>Store</th><th>Last Login</th><th>Status</th><th></th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Jane Doe</strong></td>
+                  <td style="color:#6b7280;">jane@merxy.com</td>
+                  <td><span class="badge badge-blue">Manager</span></td>
+                  <td>Store A</td>
+                  <td style="color:#6b7280;">2 hrs ago</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><button class="btn btn-ghost" style="padding:3px 10px;font-size:11px;">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Tom K.</strong></td>
+                  <td style="color:#6b7280;">tom@merxy.com</td>
+                  <td><span class="badge badge-yellow">Inventory</span></td>
+                  <td>Store B</td>
+                  <td style="color:#6b7280;">1 day ago</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><button class="btn btn-ghost" style="padding:3px 10px;font-size:11px;">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Mark S.</strong></td>
+                  <td style="color:#6b7280;">mark@merxy.com</td>
+                  <td><span class="badge badge-gray">Cashier</span></td>
+                  <td>Store A, Store B</td>
+                  <td style="color:#6b7280;">3 days ago</td>
+                  <td><span class="badge badge-red">Inactive</span></td>
+                  <td><button class="btn btn-ghost" style="padding:3px 10px;font-size:11px;">Edit</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

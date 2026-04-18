@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Add Product — Form Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; background: #e8ecf0; padding: 32px 24px 60px; color: #1a202c; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .lead { color: #718096; font-size: 13px; margin-bottom: 28px; }
+
+  /* Drawer shell */
+  .drawer-wrap { display: flex; gap: 24px; align-items: flex-start; max-width: 1100px; }
+  .drawer { background: #f7f9fb; border-radius: 12px; border: 1px solid #d1d8e0; width: 480px; flex-shrink: 0; box-shadow: 0 4px 24px rgba(0,0,0,.1); overflow: hidden; }
+  .drawer-header { padding: 16px 20px; border-bottom: 1px solid #d1d8e0; display: flex; align-items: center; justify-content: space-between; background: #fff; }
+  .drawer-title { font-size: 15px; font-weight: 700; color: #1a202c; }
+  .drawer-close { width: 28px; height: 28px; background: #edf0f4; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #718096; font-size: 16px; }
+  .drawer-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; max-height: 580px; overflow-y: auto; }
+  .drawer-footer { padding: 14px 20px; border-top: 1px solid #d1d8e0; display: flex; gap: 8px; justify-content: flex-end; background: #fff; }
+
+  /* Form elements */
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label { font-size: 11px; font-weight: 700; color: #4a5568; text-transform: uppercase; letter-spacing: .05em; }
+  .required { color: #e53e3e; margin-left: 2px; }
+  input[type=text], input[type=number], select, textarea {
+    padding: 8px 11px; border: 1px solid #d1d8e0; border-radius: 7px;
+    font-size: 13px; color: #1a202c; background: #fff; outline: none;
+    transition: border-color .15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #059669; box-shadow: 0 0 0 2px rgba(5,150,105,.1); }
+  textarea { resize: none; height: 64px; }
+  .hint { font-size: 10px; color: #a0aec0; margin-top: 1px; }
+
+  /* Image upload zone */
+  .img-upload { border: 2px dashed #d1d8e0; border-radius: 10px; padding: 0; background: #edf0f4; overflow: hidden; }
+  .img-upload-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; gap: 8px; cursor: pointer; transition: background .15s; }
+  .img-upload-inner:hover { background: #e2e8f0; }
+  .img-upload-icon { width: 44px; height: 44px; background: #d1d8e0; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .img-upload-icon svg { width: 22px; height: 22px; color: #718096; }
+  .img-upload-text { font-size: 12px; font-weight: 600; color: #4a5568; }
+  .img-upload-sub { font-size: 11px; color: #a0aec0; }
+  .img-upload-formats { font-size: 10px; color: #a0aec0; background: #fff; border-top: 1px solid #d1d8e0; padding: 7px 14px; width: 100%; text-align: center; }
+
+  /* Thumb preview strip */
+  .img-preview-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .img-thumb { width: 64px; height: 64px; border-radius: 7px; background: #e2e8f0; border: 2px solid #d1d8e0; overflow: hidden; position: relative; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .img-thumb.primary { border-color: #059669; }
+  .img-thumb-label { position: absolute; bottom: 0; left: 0; right: 0; background: #059669; color: #fff; font-size: 8px; font-weight: 700; text-align: center; padding: 2px 0; }
+  .img-thumb-del { position: absolute; top: 2px; right: 2px; width: 14px; height: 14px; background: rgba(0,0,0,.5); border-radius: 50%; color: #fff; font-size: 9px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .img-inner-color { width: 100%; height: 100%; }
+
+  /* Ks suffix input */
+  .input-suffix { display: flex; align-items: center; }
+  .input-suffix input { border-radius: 7px 0 0 7px; border-right: none; flex: 1; }
+  .suffix-tag { padding: 8px 10px; background: #edf0f4; border: 1px solid #d1d8e0; border-radius: 0 7px 7px 0; font-size: 12px; font-weight: 700; color: #4a5568; white-space: nowrap; }
+
+  /* Toggle */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #edf0f4; border-radius: 8px; border: 1px solid #d1d8e0; }
+  .toggle-label { font-size: 12px; font-weight: 600; color: #374151; }
+  .toggle-sub { font-size: 10px; color: #a0aec0; margin-top: 1px; }
+  .toggle { width: 36px; height: 20px; background: #059669; border-radius: 99px; position: relative; cursor: pointer; flex-shrink: 0; }
+  .toggle::after { content:''; position:absolute; top:3px; right:3px; width:14px; height:14px; background:#fff; border-radius:50%; }
+  .toggle.off { background: #d1d8e0; }
+  .toggle.off::after { right:auto; left:3px; }
+
+  /* Section divider */
+  .divider { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #a0aec0; display: flex; align-items: center; gap: 8px; }
+  .divider::before, .divider::after { content:''; flex:1; height:1px; background:#d1d8e0; }
+
+  /* Buttons */
+  .btn { padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+  .btn-primary { background: #059669; color: #fff; }
+  .btn-ghost { background: #f7f9fb; color: #374151; border-color: #d1d8e0; }
+
+  /* Note panel */
+  .note { background: #f7f9fb; border: 1px solid #d1d8e0; border-radius: 10px; padding: 18px; flex: 1; }
+  .note h3 { font-size: 13px; font-weight: 700; margin-bottom: 10px; color: #1a202c; }
+  .note ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .note li { font-size: 12px; color: #4a5568; display: flex; gap: 8px; align-items: flex-start; }
+  .note li::before { content:'→'; color:#059669; font-weight:700; flex-shrink:0; }
+</style>
+</head>
+<body>
+  <h2>Add Product — Drawer / Slide-over</h2>
+  <p class="lead">Slides in from the right. No page navigation needed — stays in context of the product list.</p>
+
+  <div class="drawer-wrap">
+    <div class="drawer">
+      <div class="drawer-header">
+        <div class="drawer-title">Add New Product</div>
+        <div class="drawer-close">✕</div>
+      </div>
+      <div class="drawer-body">
+
+        <!-- Image upload -->
+        <div class="field">
+          <label>Product Image</label>
+          <div class="img-upload">
+            <div class="img-upload-inner">
+              <div class="img-upload-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+              </div>
+              <div class="img-upload-text">Click to upload or drag & drop</div>
+              <div class="img-upload-sub">Upload up to 5 images</div>
+            </div>
+            <div class="img-upload-formats">JPG, PNG, WEBP · Max 2MB each</div>
+          </div>
+          <!-- Thumbnail preview (shows after upload) -->
+          <div class="img-preview-strip">
+            <div class="img-thumb primary">
+              <div class="img-inner-color" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);"></div>
+              <div class="img-thumb-label">Main</div>
+              <div class="img-thumb-del">✕</div>
+            </div>
+            <div class="img-thumb">
+              <div class="img-inner-color" style="background:linear-gradient(135deg,#e2e8f0,#cbd5e0);"></div>
+              <div class="img-thumb-del">✕</div>
+            </div>
+            <div class="img-thumb" style="border-style:dashed;background:transparent;cursor:pointer;">
+              <span style="font-size:20px;color:#a0aec0;">+</span>
+            </div>
+          </div>
+          <div class="hint">First image is the main display image. Click any thumbnail to set as main.</div>
+        </div>
+
+        <div class="divider">Basic Info</div>
+
+        <div class="field">
+          <label>Product Name <span class="required">*</span></label>
+          <input type="text" placeholder="e.g. Green Tea 500ml" value="Green Tea 500ml">
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>SKU</label>
+            <input type="text" placeholder="Auto-generated" value="GT-500">
+          </div>
+          <div class="field">
+            <label>Barcode</label>
+            <input type="text" placeholder="Scan or enter">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Category <span class="required">*</span></label>
+            <select><option>Beverages</option><option>Snacks</option><option>Electronics</option></select>
+          </div>
+          <div class="field">
+            <label>Brand</label>
+            <select><option>— None —</option><option>Brand A</option></select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Unit</label>
+          <select><option>Piece (pcs)</option><option>Box</option><option>Kg</option><option>Litre</option></select>
+        </div>
+
+        <div class="divider">Pricing</div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Cost Price</label>
+            <div class="input-suffix">
+              <input type="number" placeholder="0" value="900">
+              <div class="suffix-tag">Ks</div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Sell Price <span class="required">*</span></label>
+            <div class="input-suffix">
+              <input type="number" placeholder="0" value="1500">
+              <div class="suffix-tag">Ks</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider">Stock</div>
+
+        <div class="toggle-row">
+          <div><div class="toggle-label">Track Inventory</div><div class="toggle-sub">Deduct stock on each sale</div></div>
+          <div class="toggle"></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Min Stock Alert</label>
+            <input type="number" placeholder="5" value="10">
+            <div class="hint">Alert when stock falls below this</div>
+          </div>
+          <div class="field">
+            <label>Initial Stock</label>
+            <input type="number" placeholder="0" value="48">
+            <div class="hint">Opening stock for this store</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Description</label>
+          <textarea placeholder="Optional product notes…"></textarea>
+        </div>
+
+      </div>
+      <div class="drawer-footer">
+        <button class="btn btn-ghost">Cancel</button>
+        <button class="btn btn-primary">Save Product</button>
+      </div>
+    </div>
+
+    <!-- Notes panel -->
+    <div class="note">
+      <h3>Image handling</h3>
+      <ul>
+        <li>Upload up to 5 images per product</li>
+        <li>First image auto-set as main display image</li>
+        <li>Click any thumbnail to promote it to main</li>
+        <li>Images stored on S3-compatible storage</li>
+        <li>Thumbnails auto-generated at 3 sizes: 64px, 256px, 800px</li>
+        <li>Shown in POS product grid, stock panel, and receipts</li>
+        <li>Drag & drop or click to upload supported</li>
+        <li>Max 2MB per image — compressed on upload if oversized</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

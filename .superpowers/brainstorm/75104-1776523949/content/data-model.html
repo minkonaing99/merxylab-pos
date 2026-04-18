@@ -1,0 +1,210 @@
+<h2>Data Model</h2>
+<p class="subtitle">Grouped by domain — all store-scoped resources carry a store_id</p>
+
+<style>
+.erd { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+.erd-group { background: var(--card-bg, #fff); border: 1px solid var(--border, #e2e8f0); border-radius: 10px; padding: 14px; }
+.erd-group h4 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent, #0ea5e9); font-weight: 700; }
+.entity { background: var(--surface, #f8fafc); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; }
+.entity:last-child { margin-bottom: 0; }
+.entity-name { font-weight: 700; font-size: 13px; color: var(--text, #0f172a); margin-bottom: 4px; }
+.entity-fields { font-size: 11px; color: var(--muted, #64748b); line-height: 1.6; }
+.pk { color: #f59e0b; font-weight: 700; }
+.fk { color: #10b981; }
+.scope-tag { display:inline-block; font-size:10px; padding:1px 6px; border-radius:99px; background:#dcfce7; color:#16a34a; font-weight:600; margin-left:6px; vertical-align:middle; }
+.global-tag { background:#dbeafe; color:#2563eb; }
+</style>
+
+<div class="erd">
+
+  <!-- Auth & Users -->
+  <div class="erd-group">
+    <h4>Auth & Users</h4>
+    <div class="entity">
+      <div class="entity-name">User</div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · name · email<br>
+        password_hash · is_active<br>
+        created_at · updated_at
+      </div>
+    </div>
+    <div class="entity">
+      <div class="entity-name">Store <span class="scope-tag global-tag">global</span></div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · name · address<br>
+        phone · currency · timezone<br>
+        is_active · created_at
+      </div>
+    </div>
+    <div class="entity">
+      <div class="entity-name">UserStoreRole</div>
+      <div class="entity-fields">
+        <span class="fk">user_id</span> · <span class="fk">store_id</span><br>
+        role: enum(superadmin, admin,<br>
+        manager, cashier, inventory)
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Catalog -->
+  <div class="erd-group">
+    <h4>Product Catalog <span class="scope-tag global-tag">global</span></h4>
+    <div class="entity">
+      <div class="entity-name">Product</div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · name · sku · barcode<br>
+        <span class="fk">category_id</span> · <span class="fk">brand_id</span> · <span class="fk">unit_id</span><br>
+        cost_price · sell_price<br>
+        image_url · is_active · is_trackable
+      </div>
+    </div>
+    <div class="entity">
+      <div class="entity-name">Category</div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · name · slug<br>
+        <span class="fk">parent_id</span> (nested) · sort_order
+      </div>
+    </div>
+    <div class="entity">
+      <div class="entity-name">Brand &nbsp;/&nbsp; Unit</div>
+      <div class="entity-fields">
+        id · name<br>
+        Unit: + abbreviation
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory -->
+  <div class="erd-group">
+    <h4>Inventory <span class="scope-tag">store-scoped</span></h4>
+    <div class="entity">
+      <div class="entity-name">StoreProduct</div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · <span class="fk">store_id</span> · <span class="fk">product_id</span><br>
+        stock_qty · min_stock_qty<br>
+        max_stock_qty
+      </div>
+    </div>
+    <div class="entity">
+      <div class="entity-name">StockMovement</div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · <span class="fk">store_id</span> · <span class="fk">product_id</span><br>
+        type: (sale / receive / adjust / transfer)<br>
+        qty_change · <span class="fk">reference_id</span><br>
+        note · <span class="fk">created_by</span> · created_at
+      </div>
+    </div>
+    <div class="entity">
+      <div class="entity-name">StockTransfer</div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · <span class="fk">from_store_id</span><br>
+        <span class="fk">to_store_id</span> · status<br>
+        → StockTransferItem(product_id, qty)
+      </div>
+    </div>
+  </div>
+
+  <!-- Purchasing -->
+  <div class="erd-group">
+    <h4>Purchasing <span class="scope-tag">store-scoped</span></h4>
+    <div class="entity">
+      <div class="entity-name">Supplier</div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · name · contact_name<br>
+        email · phone · address
+      </div>
+    </div>
+    <div class="entity">
+      <div class="entity-name">PurchaseOrder</div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · <span class="fk">store_id</span> · <span class="fk">supplier_id</span><br>
+        status · total_amount<br>
+        → PurchaseOrderItem(product_id, qty, cost_price)
+      </div>
+    </div>
+  </div>
+
+  <!-- Sales -->
+  <div class="erd-group">
+    <h4>Sales <span class="scope-tag">store-scoped</span></h4>
+    <div class="entity">
+      <div class="entity-name">Shift</div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · <span class="fk">store_id</span> · <span class="fk">user_id</span><br>
+        opened_at · closed_at<br>
+        opening_cash · closing_cash
+      </div>
+    </div>
+    <div class="entity">
+      <div class="entity-name">Order</div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · <span class="fk">store_id</span> · <span class="fk">shift_id</span><br>
+        order_number · status<br>
+        (pending/completed/refunded/held)<br>
+        subtotal · discount · tax · total<br>
+        payment_method · created_at
+      </div>
+    </div>
+    <div class="entity">
+      <div class="entity-name">OrderItem</div>
+      <div class="entity-fields">
+        <span class="fk">order_id</span> · <span class="fk">product_id</span><br>
+        product_name* · qty<br>
+        unit_price · discount · total<br>
+        <span style="font-size:10px;color:#94a3b8">*snapshot at time of sale</span>
+      </div>
+    </div>
+    <div class="entity">
+      <div class="entity-name">Refund</div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · <span class="fk">order_id</span> · <span class="fk">store_id</span><br>
+        reason · total<br>
+        → RefundItem(order_item_id, qty, amount)
+      </div>
+    </div>
+  </div>
+
+  <!-- System -->
+  <div class="erd-group">
+    <h4>System</h4>
+    <div class="entity">
+      <div class="entity-name">TaxRate <span class="scope-tag">store-scoped</span></div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · <span class="fk">store_id</span> · name<br>
+        rate · is_default · is_active
+      </div>
+    </div>
+    <div class="entity">
+      <div class="entity-name">Device <span class="scope-tag">store-scoped</span></div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · <span class="fk">store_id</span> · name<br>
+        type · last_seen_at · is_active
+      </div>
+    </div>
+    <div class="entity">
+      <div class="entity-name">AuditLog <span class="scope-tag">store-scoped</span></div>
+      <div class="entity-fields">
+        <span class="pk">id</span> · <span class="fk">store_id</span> · <span class="fk">user_id</span><br>
+        action · resource · resource_id<br>
+        old_value(JSONB) · new_value(JSONB)<br>
+        ip_address · created_at
+      </div>
+    </div>
+    <div class="entity">
+      <div class="entity-name">ReceiptTemplate <span class="scope-tag">store-scoped</span></div>
+      <div class="entity-fields">
+        <span class="fk">store_id</span> · header_text<br>
+        footer_text · show_logo
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:20px;padding:14px;background:var(--surface,#f8fafc);border-radius:8px;border:1px solid var(--border,#e2e8f0);font-size:12px;color:var(--muted,#64748b);">
+  <strong style="color:var(--text,#0f172a)">Key design decisions:</strong>
+  &nbsp;Products are global (shared catalog across stores) but stock is per-store via StoreProduct.
+  &nbsp;OrderItem snapshots product_name at sale time so refunds/history stay accurate if product is renamed.
+  &nbsp;StockMovement is a single append-only ledger — stock_qty on StoreProduct is always derived from it.
+  &nbsp;UserStoreRole handles multi-store RBAC — one user can be cashier in Store A and manager in Store B.
+</div>
